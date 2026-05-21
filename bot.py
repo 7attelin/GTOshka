@@ -93,7 +93,6 @@ async def show_spo_standards(update: Update, context: ContextTypes.DEFAULT_TYPE)
     query = update.callback_query
     await query.answer()
     
-    # Удаляем сообщение с меню
     try:
         await query.message.delete()
     except Exception:
@@ -108,7 +107,6 @@ async def show_spo_standards(update: Update, context: ContextTypes.DEFAULT_TYPE)
         with open(image_path, 'rb') as photo:
             await context.bot.send_photo(chat_id=chat_id, photo=photo, caption=caption)
 
-    # Финальное сообщение с ссылкой
     footer_text = (
         "-------------------------------\n"
         "Вузовские нормативы СПО\n"
@@ -128,7 +126,6 @@ async def show_vo_standards(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     
-    # Удаляем сообщение с меню
     try:
         await query.message.delete()
     except Exception:
@@ -138,7 +135,6 @@ async def show_vo_standards(update: Update, context: ContextTypes.DEFAULT_TYPE):
     pdf_file_name = "Контрольные и практические задания для ВО.pdf"
     pdf_path = FILES_DIR / pdf_file_name
 
-    # 1. Отправляем PDF файл
     if pdf_path.exists():
         with open(pdf_path, 'rb') as doc:
             await context.bot.send_document(
@@ -147,9 +143,8 @@ async def show_vo_standards(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 caption="📄 Полный файл нормативов ВО (PDF)"
             )
     else:
-        await context.bot.send_message(chat_id=chat_id, text=f"⚠️ Файл {pdf_file_name} не найден в папке data/files.")
+        await context.bot.send_message(chat_id=chat_id, text=f"⚠️ Файл {pdf_file_name} не найден.")
 
-    # 2. Отправляем описание
     description_text = (
         "В этом файле находятся нормативы для ВО по:\n"
         "*- Легкой атлетике*🏃‍♂️\n"
@@ -171,9 +166,9 @@ async def show_vo_standards(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=query.message.chat_id,
         text=description_text,
+        parse_mode='Markdown'
     )
 
-    # 3. Финальное сообщение с ссылкой
     footer_text = (
         "-------------------------------\n"
         "Вузовские нормативы ВО\n"
@@ -205,7 +200,6 @@ async def show_gto_stage(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     stage = int(query.data.split("_")[-1])
     
-    # Формируем имя файла: gto_stage_6/7/8.jpg
     file_name = f"gto_stage_{stage}.jpg"
     image_path = IMAGES_DIR / file_name
     
@@ -219,7 +213,6 @@ async def show_gto_stage(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif stage == 8:
         stage_info += " (18-29 лет)"
 
-    # Удаляем сообщение с выбором ступени
     try:
         await query.message.delete()
     except Exception:
@@ -227,7 +220,6 @@ async def show_gto_stage(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     chat_id = query.message.chat_id
 
-    # Отправляем фото
     if image_path.exists():
         with open(image_path, 'rb') as photo:
             await context.bot.send_photo(
@@ -238,7 +230,6 @@ async def show_gto_stage(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await context.bot.send_message(chat_id=chat_id, text=f"⚠️ Изображение {file_name} не найдено.")
 
-    # Отправляем финальный текст с кнопками
     footer_text = (
         "-------------------------------\n"
         f"{stage_info}\n"
@@ -270,8 +261,6 @@ async def show_gto_recommendations(update: Update, context: ContextTypes.DEFAULT
     elif stage == 8:
         stage_info += " (18-29 лет)"
     
-    # Удаляем предыдущее сообщение (если оно было) или просто шлем новое
-    # В данном случае, так как мы переходим из меню ступени, лучше удалить старое, чтобы не засорять чат
     try:
         await query.message.delete()
     except Exception:
@@ -293,43 +282,68 @@ async def show_gto_recommendations(update: Update, context: ContextTypes.DEFAULT
         parse_mode='HTML'
     )
 
-# Показ раздела информации (данные из config подразумевается)
+# Показ раздела информации
 async def show_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     
-    data = config.INFO_DATA
+    chat_id = query.message.chat_id
     
-    # Формируем текст сообщения
-    text_parts = [
-        f"*{data['title']}*",
-        "",
-        data['description'],
-        ""
+    # Текст сообщения
+    info_title = "ℹ️ Полезная информация"
+    info_desc = "Здесь собраны ресурсы, которые помогут вам лучше подготовиться к сдаче нормативов:"
+    
+    text_content = f"{info_title}\n\n{info_desc}"
+    
+    # Клавиатура
+    keyboard = [
+        [InlineKeyboardButton("🎯 Официальный сайт ГТО", url=config.GTO_MAIN_SITE)],
+        [InlineKeyboardButton("📹 Таблица с видео-уроками", callback_data="info_send_video_table")],
+        [InlineKeyboardButton("🔙 Назад", callback_data="main_menu")]
     ]
     
-    # Добавляем список ссылок текстом
-    # Но основные ссылки будут кнопками ниже
-    links_text = "\n".join([f"• {item['text']}" for item in data['links']])
-    text_parts.append(links_text)
-    text_parts.append("")
-    text_parts.append(data['contacts'])
-    
-    full_text = "\n".join(text_parts)
-    
-    # Формируем клавиатуру с кнопками-ссылками
-    keyboard = []
-    for item in data['links']:
-        keyboard.append([InlineKeyboardButton(item['text'], url=item['url'])])
-    
-    # Кнопка назад
-    keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data="main_menu")])
-    
     await query.edit_message_text(
-        text=full_text,
-        reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode='Markdown'
+        text=text_content,
+        reply_markup=InlineKeyboardMarkup(keyboard)
     )
+
+# Обработчик отправки таблицы с видео (внутри раздела Инфо)
+async def send_video_table(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    chat_id = query.message.chat_id
+    file_name = config.FILES.get("video_links_table")
+    file_path = FILES_DIR / file_name if file_name else None
+    
+    if file_path and file_path.exists():
+        # 1. Отправляем файл
+        with open(file_path, 'rb') as doc:
+            await context.bot.send_document(
+                chat_id=chat_id,
+                document=doc,
+                caption="📊 Таблица с ссылками на видео-уроки по видам спорта.\n\n💡 Добавьте в избранное, чтобы не потерять!"
+            )
+        
+        # 2. Редактируем сообщение меню, меняя кнопку и текст, чтобы не давали спамить
+        new_text = (
+            "ℹ️ Полезная информация\n\n"
+            "Здесь собраны ресурсы, которые помогут вам лучше подготовиться к сдаче нормативов:\n\n"
+            "✅ Файл с видео-уроками уже отправлен вам выше."
+        )
+        
+        new_keyboard = [
+            [InlineKeyboardButton("🎯 Официальный сайт ГТО", url=config.GTO_MAIN_SITE)],
+            [InlineKeyboardButton("✅ Видео-уроки отправлены", callback_data="none")], # Кнопка неактивна визуально
+            [InlineKeyboardButton("🔙 Назад", callback_data="main_menu")]
+        ]
+        
+        await query.edit_message_text(
+            text=new_text,
+            reply_markup=InlineKeyboardMarkup(new_keyboard)
+        )
+    else:
+        await query.answer("⚠️ Файл с таблицей не найден на сервере.", show_alert=True)
 
 # Универсальный обработчик нажатий на кнопки
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -343,6 +357,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "vo_standards": show_vo_standards,
         "gto_menu": gto_menu,
         "info": show_info,
+        "info_send_video_table": send_video_table, # Новый обработчик
     }
     
     if data.startswith("gto_stage_"):
@@ -352,8 +367,10 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data in handlers:
         await handlers[data](update, context)
     else:
-        logger.warning(f"Неизвестный callback_data: {data}") # На случай, если будут изменения в разделах
-        await query.answer("Этот раздел в разработке", show_alert=True)
+        # Игнорируем нажатия на неактивные кнопки или неизвестные команды
+        if data != "none":
+            logger.warning(f"Неизвестный callback_data: {data}")
+            await query.answer("Этот раздел в разработке", show_alert=True)
 
 # Создание и настройка приложения бота
 def create_application():
