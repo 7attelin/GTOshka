@@ -17,14 +17,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# --- ПУТИ К ДАННЫМ ---
+# Различные пути к разным данным
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
 IMAGES_DIR = DATA_DIR / "images"
 FILES_DIR = DATA_DIR / "files"
 
+# Список главного меню
 def get_main_menu_keyboard():
-    """Клавиатура главного меню."""
     keyboard = [
         [InlineKeyboardButton("📚 Вузовские Нормативы", callback_data="vuz_menu")],
         [InlineKeyboardButton("🎯 Нормативы ГТО", callback_data="gto_menu")],
@@ -32,9 +32,8 @@ def get_main_menu_keyboard():
     ]
     return InlineKeyboardMarkup(keyboard)
 
-
+# Список меню вузовских нормативов
 def get_vuz_menu_keyboard():
-    """Клавиатура меню вузовских нормативов."""
     keyboard = [
         [InlineKeyboardButton("Нормативы СПО", callback_data="spo_standards")],
         [InlineKeyboardButton("Нормативы ВО", callback_data="vo_standards")],
@@ -42,9 +41,8 @@ def get_vuz_menu_keyboard():
     ]
     return InlineKeyboardMarkup(keyboard)
 
-
+# Список выбора ступени ГТО
 def get_gto_stage_keyboard():
-    """Клавиатура выбора ступени ГТО."""
     keyboard = [
         [InlineKeyboardButton("Ступень 6 (13-15 лет)", callback_data="gto_stage_6")],
         [InlineKeyboardButton("Ступень 7 (16-17 лет)", callback_data="gto_stage_7")],
@@ -53,9 +51,8 @@ def get_gto_stage_keyboard():
     ]
     return InlineKeyboardMarkup(keyboard)
 
-
+# Список для детального просмотра ступени ГТО
 def get_gto_detail_keyboard(stage: int):
-    """Клавиатура для детального просмотра ступени ГТО."""
     keyboard = [
         [InlineKeyboardButton("📋 Рекомендации", callback_data=f"gto_rec_{stage}")],
         [InlineKeyboardButton("🔙 Назад к выбору ступени", callback_data="gto_menu")],
@@ -63,18 +60,16 @@ def get_gto_detail_keyboard(stage: int):
     ]
     return InlineKeyboardMarkup(keyboard)
 
-
+# Обработчик команды /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработчик команды /start."""
     if update.message:
         await update.message.reply_text(
             config.MAIN_MENU_TEXT,
             reply_markup=get_main_menu_keyboard()
         )
 
-
+# Главное меню
 async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Показ главного меню."""
     query = update.callback_query
     await query.answer()
     
@@ -83,9 +78,8 @@ async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=get_main_menu_keyboard()
     )
 
-
+# Вузовские нормативы
 async def vuz_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Меню вузовских нормативов."""
     query = update.callback_query
     await query.answer()
     
@@ -94,9 +88,8 @@ async def vuz_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=get_vuz_menu_keyboard()
     )
 
-
+# Нормативы СПО
 async def show_spo_standards(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Показ нормативов СПО (1 фото)."""
     query = update.callback_query
     await query.answer()
     
@@ -130,9 +123,8 @@ async def show_spo_standards(update: Update, context: ContextTypes.DEFAULT_TYPE)
         reply_markup=get_vuz_menu_keyboard()
     )
 
-
+# Показ нормативов ВО (PDF файл + Описание + Текст)
 async def show_vo_standards(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Показ нормативов ВО (PDF файл + Описание + Текст)."""
     query = update.callback_query
     await query.answer()
     
@@ -196,9 +188,8 @@ async def show_vo_standards(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=get_vuz_menu_keyboard()
     )
 
-
+# Меню выбора ступени ГТО
 async def gto_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Меню выбора ступени ГТО."""
     query = update.callback_query
     await query.answer()
     
@@ -207,15 +198,14 @@ async def gto_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=get_gto_stage_keyboard()
     )
 
-
+# Показ выбранной ступени ГТО (1 фото)
 async def show_gto_stage(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Показ выбранной ступени ГТО (1 фото + текст)."""
     query = update.callback_query
     await query.answer()
     
     stage = int(query.data.split("_")[-1])
     
-    # Формируем имя файла: gto_stage_6.jpg, gto_stage_7.jpg и т.д.
+    # Формируем имя файла: gto_stage_6/7/8.jpg
     file_name = f"gto_stage_{stage}.jpg"
     image_path = IMAGES_DIR / file_name
     
@@ -263,9 +253,8 @@ async def show_gto_stage(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=get_gto_detail_keyboard(stage)
     )
 
-
+# Показ рекомендаций для выбранной ступени ГТО
 async def show_gto_recommendations(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Показ рекомендаций для выбранной ступени ГТО."""
     query = update.callback_query
     await query.answer()
     
@@ -304,9 +293,8 @@ async def show_gto_recommendations(update: Update, context: ContextTypes.DEFAULT
         parse_mode='HTML'
     )
 
-
+# Показ раздела информации (данные из config подразумевается)
 async def show_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Показ раздела информации (данные из config)."""
     query = update.callback_query
     await query.answer()
     
@@ -320,7 +308,7 @@ async def show_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ""
     ]
     
-    # Добавляем список ссылок текстом (для тех, кто любит читать)
+    # Добавляем список ссылок текстом
     # Но основные ссылки будут кнопками ниже
     links_text = "\n".join([f"• {item['text']}" for item in data['links']])
     text_parts.append(links_text)
@@ -343,9 +331,8 @@ async def show_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode='Markdown'
     )
 
-
+# Универсальный обработчик нажатий на кнопки
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Универсальный обработчик нажатий на кнопки."""
     query = update.callback_query
     data = query.data
     
@@ -365,18 +352,16 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data in handlers:
         await handlers[data](update, context)
     else:
-        logger.warning(f"Неизвестный callback_data: {data}")
+        logger.warning(f"Неизвестный callback_data: {data}") # На случай, если будут изменения в разделах
         await query.answer("Этот раздел в разработке", show_alert=True)
 
-
+# Создание и настройка приложения бота
 def create_application():
-    """Создание и настройка приложения бота."""
     token = os.getenv("TOKEN")
     
     if not token or token == "your_bot_token_here":
         raise ValueError(
             "Токен бота не найден! Создайте файл .env и укажите TOKEN=ваш_токен\n"
-            "Получить токен можно у @BotFather в Telegram"
         )
     
     application = Application.builder().token(token).build()
@@ -386,14 +371,13 @@ def create_application():
     
     return application
 
-
+# Запуск бота
 def main():
-    """Запуск бота."""
     logger.info("Запуск бота...")
     
     try:
         app = create_application()
-        logger.info("Бот успешно запущен. Ожидание команд...")
+        logger.info("Бот успешно запущен. Ожидание команд.")
         app.run_polling(allowed_updates=Update.ALL_TYPES)
         
     except KeyboardInterrupt:
