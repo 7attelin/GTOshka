@@ -322,7 +322,7 @@ async def send_video_table(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if file_path.exists():
         # 1. Отправляем файл
-        with open(file_path, 'rb') as doc:
+        with open(file_path, 'rb') as doc:#
             await context.bot.send_document(
                 chat_id=chat_id,
                 document=doc,
