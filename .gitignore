@@ -55,8 +55,4 @@ htmlcov/
 *.tar.gz
 *.tar.bz2
 *.tar.xz
-<<<<<<< HEAD
 *.tar.zst
-=======
-*.tar.zst
->>>>>>> b1583bb3f2d33eff20c308a01b077e6d757d05ad
