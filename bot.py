@@ -313,10 +313,14 @@ async def send_video_table(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     
     chat_id = query.message.chat_id
-    file_name = config.FILES.get("video_links_table")
-    file_path = FILES_DIR / file_name if file_name else None
     
-    if file_path and file_path.exists():
+    # Прописываем имя файла
+    file_name = "Контрольные нормативы и упражнения.xlsx"
+    file_path = FILES_DIR / file_name
+    
+    logger.info(f"Попытка отправить файл: {file_path}")
+
+    if file_path.exists():
         # 1. Отправляем файл
         with open(file_path, 'rb') as doc:
             await context.bot.send_document(
@@ -325,7 +329,7 @@ async def send_video_table(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 caption="📊 Таблица с ссылками на видео-уроки по видам спорта.\n\n💡 Добавьте в избранное, чтобы не потерять!"
             )
         
-        # 2. Редактируем сообщение меню, меняя кнопку и текст, чтобы не давали спамить
+        # 2. Редактируем сообщение меню
         new_text = (
             "ℹ️ Полезная информация\n\n"
             "Здесь собраны ресурсы, которые помогут вам лучше подготовиться к сдаче нормативов:\n\n"
@@ -334,7 +338,7 @@ async def send_video_table(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         new_keyboard = [
             [InlineKeyboardButton("🎯 Официальный сайт ГТО", url=config.GTO_MAIN_SITE)],
-            [InlineKeyboardButton("✅ Видео-уроки отправлены", callback_data="none")], # Кнопка неактивна визуально
+            [InlineKeyboardButton("✅ Видео-уроки отправлены", callback_data="none")],
             [InlineKeyboardButton("🔙 Назад", callback_data="main_menu")]
         ]
         
@@ -343,6 +347,7 @@ async def send_video_table(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=InlineKeyboardMarkup(new_keyboard)
         )
     else:
+        logger.error(f"Файл не найден по пути: {file_path}")
         await query.answer("⚠️ Файл с таблицей не найден на сервере.", show_alert=True)
 
 # Универсальный обработчик нажатий на кнопки
